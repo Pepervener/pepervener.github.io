@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Bulle des OliGoFriends</title>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
+    color: #eee;
+    padding: 20px;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: flex-start;
+    position: relative;
+  }
+  #game-area {
+    flex-grow: 1;
+    max-width: 800px;
+    text-align: center;
+  }
+  #setup-area {
+    width: 240px;
+    margin-right: 20px;
+    text-align: left;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #ccc;
+  }
+  #player-setup {
+    margin-bottom: 15px;
+  }
+  #player-names {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .player-input {
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+  }
+  .player-input label {
+    width: 30px;
+    margin-right: 10px;
+    font-weight: bold;
+  }
+  .player-input input {
+    padding: 8px;
+    font-size: 14px;
+    background: #333;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 4px;
+    width: 180px;
+    transition: border-color 0.3s ease;
+  }
+  .player-input input:focus {
+    border-color: #4CAF50;
+    outline: none;
+  }
+  #player-select {
+    margin: 8px 0;
+    padding: 8px;
+    font-size: 14px;
+    background: #333;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 4px;
+    width: 100%;
+    cursor: pointer;
+  }
+  #columns {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .card-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+  }
+  .card {
+    width: 70px;
+    height: 100px;
+    background: linear-gradient(145deg, #fff, #ddd);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 20px;
+    margin-top: -80px;
+    color: black;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+  .new-card {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: cardAppear 0.5s ease forwards;
+  }
+  .active-card {
+    border: 2px solid #ff0000;
+    box-shadow: none;
+  }
+  @keyframes cardAppear {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .card-stack .card:first-child {
+    margin-top: 0;
+  }
+  .card.red {
+    color: red;
+  }
+  .card .corner {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 12px;
+  }
+  .buttons {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 12px 24px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+  button:hover:not(:disabled) {
+    background: #45a049;
+    transform: scale(1.05);
+  }
+  button:disabled {
+    background: #666;
+    cursor: not-allowed;
+  }
+  #message {
+    font-size: 1.2em;
+    font-weight: bold;
+    min-height: 30px;
+    margin: 20px 0;
+    transition: color 0.3s ease;
+  }
+  #stats {
+    font-size: 1.1em;
+    margin: 10px 0;
+    color: #ddd;
+  }
+  #drunk-man {
+    margin: 15px auto;
+    text-align: center;
+  }
+  #drunk-man-img {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+  }
+  #history {
+    width: 240px;
+    margin-left: 20px;
+    text-align: left;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-y: auto;
+    max-height: 80vh;
+    font-size: 14px;
+    color: #ccc;
+  }
+  .value-history {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .value-history span.suit {
+    font-size: 16px;
+  }
+  .value-history span.suit.red {
+    color: red;
+  }
+  #player-stats {
+    margin-top: 20px;
+    text-align: left;
+    font-size: 14px;
+    color: #ccc;
+  }
+  #player-stats div {
+    margin-bottom: 8px;
+  }
+  #copyright {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: #ccc;
+    opacity: 0.7;
+  }
+  @media (max-width: 900px) {
+    body {
+      flex-direction: column;
+      align-items: center;
+    }
+    #setup-area {
+      width: 100%;
+      max-width: 300px;
+      margin-right: 0;
+      margin-bottom: 20px;
+    }
+    .player-input input {
+      width: 100%;
+    }
+    #player-select {
+      width: 100%;
+    }
+    #history {
+      width: 100%;
+      max-width: 300px;
+      margin-left: 0;
+      margin-top: 20px;
+      max-height: 200px;
+    }
+    #game-area {
+      max-width: 100%;
+    }
+    .card {
+      width: 50px;
+      height: 75px;
+      font-size: 16px;
+      margin-top: -50px;
+    }
+    .card-stack .card:first-child {
+      margin-top: 0;
+    }
+    .card .corner {
+      font-size: 10px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+    }
+    h1 {
+      font-size: 1.8em;
+    }
+    #drunk-man-img {
+      width: 160px;
+      height: 160px;
+    }
+    #copyright {
+      position: static;
+      margin-top: 20px;
+      text-align: center;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="setup-area">
+    <div id="player-setup">
+      <div id="player-names">
+        <div class="player-input"><label>1.</label><input type="text" id="player-name-0" placeholder="Joueur 1" onchange="updatePlayerSelect()"></div>
+        <div class="player-input"><label>2.</label><input type="text" id="player-name-1" placeholder="Joueur 2" onchange="updatePlayerSelect()"></div>
+        <div class="player-input"><label>3.</label><input type="text" id="player-name-2" placeholder="Joueur 3" onchange="updatePlayerSelect()"></div>
+        <div class="player-input"><label>4.</label><input type="text" id="player-name-3" placeholder="Joueur 4" onchange="updatePlayerSelect()"></div>
+        <div class="player-input"><label>5.</label><input type="text" id="player-name-4" placeholder="Joueur 5" onchange="updatePlayerSelect()"></div>
+      </div>
+    </div>
+    <div id="drunk-man">
+      <img id="drunk-man-img" src="images/happy.jpg" alt="Joueur content">
+    </div>
+    <select id="player-select" aria-label="Sélectionner le joueur actif" onchange="updateCurrentPlayer()"></select>
+  </div>
+  <div id="game-area">
+    <h1>La Bulle des OliGoFriends</h1>
+    <div class="buttons">
+      <button onclick="makeGuess('higher')" aria-label="Deviner une carte plus haute">Plus haut</button>
+      <button onclick="makeGuess('lower')" aria-label="Deviner une carte plus basse">Plus bas</button>
+      <button onclick="startGame()" aria-label="Démarrer une nouvelle partie">Nouvelle Partie</button>
+      <button id="next-player-btn" onclick="nextPlayer()" disabled aria-label="Passer au joueur suivant">Joueur suivant</button>
+    </div>
+    <div id="stats">Cartes jouées : 0 | Cartes restantes : 47 | Gorgées à boire : 0</div>
+    <div id="columns"></div>
+    <p id="message"></p>
+  </div>
+  <div id="history"></div>
+  <div id="copyright">All Rights Reserved by OliGoMax</div>
+
+  <script>
+    const suits = ['♠', '♥', '♦', '♣'];
+    const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    const displayMap = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+
+    let deck = [];
+    let visibleCards = [];
+    let currentColumn = 0;
+    let historyMap = {};
+    let cardsPlayed = 0;
+    let cardsRemaining = 52;
+    let sipsToDrink = 0;
+    let playerNames = [];
+    let currentPlayer = 0;
+    let playerStats = {
+      gamesPlayed: new Array(5).fill(0),
+      totalSips: new Array(5).fill(0)
+    };
+    let gameInProgress = false;
+
+    function createDeck() {
+      deck = [];
+      for (let suit of suits) {
+        for (let val of values) {
+          deck.push({ suit, val });
+        }
+      }
+      return shuffle(deck);
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function updateHistory(card) {
+      if (!historyMap[card.val]) historyMap[card.val] = [];
+      if (!historyMap[card.val].includes(card.suit)) {
+        historyMap[card.val].push(card.suit);
+      }
+      renderHistoryAndStats();
+    }
+
+    function renderHistoryAndStats() {
+      const historyDiv = document.getElementById('history');
+      historyDiv.innerHTML = '';
+
+      const suitOrder = ['♥', '♦', '♣', '♠'];
+      values.forEach(val => {
+        if (historyMap[val]) {
+          const sortedSuits = suitOrder.filter(suit => historyMap[val].includes(suit));
+          if (sortedSuits.length > 0) {
+            const valDisplay = displayMap[val] || val;
+            const suitsHTML = sortedSuits
+              .map(suit => `<span class="suit ${suit === '♥' || suit === '♦' ? 'red' : ''}">${suit}</span>`)
+              .join('');
+            const section = document.createElement('div');
+            section.className = 'value-history';
+            section.innerHTML = `<strong>${valDisplay}:</strong> ${suitsHTML}`;
+            historyDiv.appendChild(section);
+          }
+        }
+      });
+
+      const statsDiv = document.createElement('div');
+      statsDiv.id = 'player-stats';
+      statsDiv.innerHTML = '<strong>Stats Joueurs :</strong>';
+      for (let i = 0; i < 5; i++) {
+        if (playerNames[i]) {
+          statsDiv.innerHTML += `<div>${playerNames[i]} - Partie${playerStats.gamesPlayed[i] > 1 ? 's' : ''} : ${playerStats.gamesPlayed[i]}, Gorgées : ${playerStats.totalSips[i]}</div>`;
+        }
+      }
+      historyDiv.appendChild(statsDiv);
+    }
+
+    function resetHistory() {
+      historyMap = {};
+      renderHistoryAndStats();
+    }
+
+    function drawCard() {
+      if (deck.length === 0) {
+        const usedCards = [];
+        visibleCards.forEach((stack, index) => {
+          for (let i = 0; i < stack.length - 1; i++) {
+            usedCards.push({ suit: stack[i].suit, val: stack[i].val });
+          }
+        });
+        if (usedCards.length === 0) {
+          document.getElementById('message').textContent = '😢 Toutes les cartes sont visibles ! Cliquez sur "Nouvelle Partie".';
+          return null;
+        }
+        visibleCards = visibleCards.map(stack => [stack[stack.length - 1]]);
+        deck = shuffle(usedCards);
+        cardsRemaining = deck.length;
+        updateStats();
+        resetHistory();
+        visibleCards.forEach(stack => {
+          if (stack.length > 0) {
+            updateHistory(stack[stack.length - 1]);
+          }
+        });
+        document.getElementById('message').textContent = '🔄 Deck vide ! Les cartes non visibles ont été remélangées.';
+      }
+      const card = deck.pop();
+      if (card) {
+        cardsRemaining = deck.length;
+        updateStats();
+        updateHistory(card);
+      }
+      return card;
+    }
+
+    function updateStats() {
+      document.getElementById('stats').textContent = `Cartes jouées : ${cardsPlayed} | Cartes restantes : ${cardsRemaining} | Gorgées à boire : ${sipsToDrink} (Joueur : ${playerNames[currentPlayer] || `Joueur ${currentPlayer + 1}`})`;
+      const drunkManImg = document.getElementById('drunk-man-img');
+      if (sipsToDrink <= 10) {
+        drunkManImg.src = 'images/happy.jpg';
+        drunkManImg.alt = 'Joueur content';
+      } else if (sipsToDrink <= 20) {
+        drunkManImg.src = 'images/tipsy.jpg';
+        drunkManImg.alt = 'Joueur joyeusement saoul';
+      } else if (sipsToDrink <= 35) {
+        drunkManImg.src = 'images/drunk.jpg';
+        drunkManImg.alt = 'Joueur très saoul';
+      } else {
+        drunkManImg.src = 'images/angry.jpg';
+        drunkManImg.alt = 'Joueur endormi';
+      }
+    }
+
+    function cardToHTML(card, isNew = false, isActive = false) {
+      const valDisplay = displayMap[card.val] || card.val;
+      const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'red' : '';
+      const newClass = isNew ? 'new-card' : '';
+      const activeClass = isActive ? 'active-card' : '';
+      return `<div class="card ${colorClass} ${newClass} ${activeClass}">
+                <div class="corner">${valDisplay}${card.suit}</div>
+                ${valDisplay}${card.suit}
+              </div>`;
+    }
+
+    function displayColumns() {
+      const container = document.getElementById('columns');
+      container.innerHTML = '';
+      visibleCards.forEach((cardStack, stackIndex) => {
+        const stackDiv = document.createElement('div');
+        stackDiv.className = 'card-stack';
+        cardStack.forEach((card, cardIndex) => {
+          const isNew = cardIndex === cardStack.length - 1 && stackIndex === currentColumn && gameInProgress && cardStack.length > 1;
+          const isActive = cardIndex === cardStack.length - 1 && stackIndex === currentColumn && gameInProgress;
+          stackDiv.innerHTML += cardToHTML(card, isNew, isActive);
+        });
+        container.appendChild(stackDiv);
+      });
+    }
+
+    function makeGuess(direction) {
+      if (!gameInProgress) {
+        document.getElementById('message').textContent = '⚠️ Commencez une nouvelle partie !';
+        return;
+      }
+      if (currentColumn >= 5) {
+        document.getElementById('message').textContent = `🎉 Bravo ! ${playerNames[currentPlayer] || `Joueur ${currentPlayer + 1}`} a complété la bulle en ${cardsPlayed} cartes !`;
+        playerStats.gamesPlayed[currentPlayer]++;
+        gameInProgress = false;
+        document.getElementById('next-player-btn').disabled = false;
+        saveStats();
+        return;
+      }
+
+      document.querySelectorAll('.buttons button:not(#next-player-btn)').forEach(btn => btn.disabled = true);
+      const topCard = visibleCards[currentColumn][visibleCards[currentColumn].length - 1];
+      const newCard = drawCard();
+      if (!newCard) {
+        document.getElementById('message').textContent = '😢 Plus de cartes disponibles ! Cliquez sur "Nouvelle Partie".';
+        document.querySelectorAll('.buttons button:not(#next-player-btn)').forEach(btn => btn.disabled = false);
+        return;
+      }
+
+      cardsPlayed++;
+      visibleCards[currentColumn].push(newCard);
+      const prevColumn = currentColumn;
+      const correct = direction === 'higher' ? newCard.val >= topCard.val : newCard.val <= topCard.val;
+
+      if (correct) {
+        currentColumn++;
+        document.getElementById('message').textContent = currentColumn === 5 ? `🎉 Bravo ! ${playerNames[currentPlayer] || `Joueur ${currentPlayer + 1}`} a complété la bulle en ${cardsPlayed} cartes !` : '✅ Bien joué !';
+        if (currentColumn === 5) {
+          playerStats.gamesPlayed[currentPlayer]++;
+          gameInProgress = false;
+          document.getElementById('next-player-btn').disabled = false;
+        }
+      } else {
+        const sips = currentColumn + 1;
+        sipsToDrink += sips;
+        playerStats.totalSips[currentPlayer] += sips;
+        document.getElementById('message').textContent = `❌ Mauvaise réponse. ${playerNames[currentPlayer] || `Joueur ${currentPlayer + 1}`} doit boire ${sips} gorgée${sips > 1 ? 's' : ''} !`;
+        currentColumn = 0;
+      }
+      updateStats();
+      displayColumns();
+      saveStats();
+      document.querySelectorAll('.buttons button:not(#next-player-btn)').forEach(btn => btn.disabled = false);
+    }
+
+    function startGame() {
+      if (playerNames.every(name => !name)) {
+        document.getElementById('message').textContent = '⚠️ Veuillez entrer au moins un nom de joueur !';
+        return;
+      }
+      if (gameInProgress && !confirm('Une partie est en cours. Voulez-vous vraiment recommencer ?')) return;
+      deck = createDeck();
+      visibleCards = [];
+      historyMap = {};
+      cardsPlayed = 0;
+      cardsRemaining = 52;
+      sipsToDrink = 0;
+      for (let i = 0; i < 5; i++) {
+        const card = drawCard();
+        visibleCards.push([card]);
+        updateHistory(card);
+        cardsRemaining--;
+      }
+      currentColumn = 0;
+      gameInProgress = true;
+      document.getElementById('message').textContent = '';
+      displayColumns();
+      updateStats();
+      document.getElementById('next-player-btn').disabled = true;
+      saveStats();
+    }
+
+    function updatePlayerSelect() {
+      const select = document.getElementById('player-select');
+      select.innerHTML = '';
+      playerNames = [];
+      let validPlayers = 0;
+      for (let i = 0; i < 5; i++) {
+        const input = document.getElementById(`player-name-${i}`);
+        playerNames[i] = input.value.trim() || null;
+        if (playerNames[i]) validPlayers++;
+      }
+      playerNames.forEach((name, index) => {
+        if (name) {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = name;
+          select.appendChild(option);
+        }
+      });
+      if (validPlayers === 0) {
+        document.getElementById('message').textContent = '⚠️ Veuillez entrer au moins un nom de joueur !';
+        document.querySelectorAll('.buttons button:not(#next-player-btn)').forEach(btn => btn.disabled = true);
+        return;
+      }
+      document.querySelectorAll('.buttons button:not(#next-player-btn)').forEach(btn => btn.disabled = false);
+      if (!playerNames[currentPlayer]) {
+        currentPlayer = 0;
+        while (currentPlayer < 5 && !playerNames[currentPlayer]) currentPlayer++;
+      }
+      select.value = currentPlayer;
+      updateStats();
+      saveStats();
+    }
+
+    function updateCurrentPlayer() {
+      currentPlayer = parseInt(document.getElementById('player-select').value);
+      updateStats();
+      saveStats();
+    }
+
+    function nextPlayer() {
+      const activePlayers = playerNames.reduce((acc, name, index) => {
+        if (name) acc.push(index);
+        return acc;
+      }, []);
+      if (activePlayers.length === 0) {
+        document.getElementById('message').textContent = '⚠️ Aucun joueur actif !';
+        return;
+      }
+      const currentIndex = activePlayers.indexOf(currentPlayer);
+      const nextIndex = (currentIndex + 1) % activePlayers.length;
+      currentPlayer = activePlayers[nextIndex];
+      document.getElementById('player-select').value = currentPlayer;
+      updateStats();
+      startGame();
+    }
+
+    function saveStats() {
+      localStorage.setItem('playerStats', JSON.stringify(playerStats));
+      localStorage.setItem('playerNames', JSON.stringify(playerNames));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      localStorage.removeItem('playerStats');
+      localStorage.removeItem('playerNames');
+      updatePlayerSelect();
+    });
+  </script>
+</body>
+</html>
