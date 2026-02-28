@@ -2,7 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>La Bulle des OliGoFriends 🃏</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -352,6 +354,8 @@
   .avatar-area {
     text-align: center;
   }
+
+  .avatar-info { /* desktop: stacked under emoji */ }
 
   .avatar-emoji {
     font-size: 4rem;
@@ -737,9 +741,182 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  @media (max-width: 900px) {
-    .app { grid-template-columns: 1fr; }
-    .panel-left, .panel-right { border: none; border-top: 1px solid var(--border); }
+  /* ============================================================
+     MOBILE LANDSCAPE — iPhone Pro Max optimized
+     Viewport ~932×430px (minus safe areas ~env(safe-area-inset-*))
+     Strategy:
+       • Suppress header, merge player controls into a top bar
+       • 3-col grid: [left sidebar compact] [columns] [right drawer]
+       • Left: avatar + player select + timer, all compressed
+       • Right: toggleable drawer (stats / history) via tab
+       • Center: cards get max vertical space, buttons stay big
+  ============================================================ */
+  @media (max-height: 520px) and (orientation: landscape) {
+
+    body { overflow: hidden; }
+
+    .app {
+      grid-template-columns: 180px 1fr 0px;
+      grid-template-rows: 36px 1fr;
+      height: 100dvh;
+      height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    /* ---- HEADER: ultra-compact top bar ---- */
+    header {
+      grid-column: 1 / -1;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    header h1 { font-size: 0.9rem; text-shadow: none; }
+    header p  { display: none; }
+
+    .theme-toggle {
+      position: static;
+      transform: none;
+      margin-left: auto;
+    }
+
+    /* ---- RIGHT PANEL: hidden by default, toggleable ---- */
+    .panel-right {
+      grid-column: 3;
+      width: 0;
+      overflow: hidden;
+      padding: 0;
+      border: none;
+      transition: width 0.3s ease;
+    }
+
+    .panel-right.open {
+      width: 220px;
+      padding: 10px 10px;
+      border-left: 1px solid var(--border);
+    }
+
+    /* Drawer toggle button */
+    .drawer-toggle {
+      display: flex !important;
+    }
+
+    /* ---- LEFT PANEL: compact sidebar ---- */
+    .panel-left {
+      grid-column: 1;
+      padding: 8px 10px;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .section-title { margin-bottom: 5px; padding-bottom: 3px; }
+
+    /* Player name inputs: hide the add-player row to save space */
+    #playerInputs { display: none; }
+    .btn-add-player { display: none !important; }
+
+    /* Player select: always visible */
+    select { padding: 5px 6px; font-size: 0.7rem; }
+
+    /* Avatar: horizontal compact layout */
+    .avatar-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+    }
+    .avatar-info { flex: 1; min-width: 0; }
+    .avatar-emoji { font-size: 2rem; display: block; filter: none; flex-shrink: 0; }
+    .avatar-name  { font-size: 0.8rem; margin-top: 0; }
+    .avatar-state { font-size: 0.55rem; margin-top: 1px; }
+    .sip-bar      { margin-top: 4px; }
+
+    /* Stats: 2-col compact grid */
+    .stats-block .stat-row {
+      font-size: 0.6rem;
+      padding: 2px 0;
+    }
+
+    /* Timer: compact horizontal */
+    .timer-section {
+      padding: 6px 8px;
+      gap: 6px;
+    }
+    .timer-ring { width: 36px; height: 36px; }
+    .timer-ring svg { width: 36px; height: 36px; }
+    .timer-controls { gap: 2px; }
+    .timer-duration-row input[type=range] { width: 50px; }
+    .timer-label { font-size: 0.55rem; }
+    .penalty-badge { font-size: 0.55rem; }
+
+    /* ---- CENTER PANEL ---- */
+    .panel-center {
+      grid-column: 2;
+      padding: 6px 8px 8px;
+      gap: 6px;
+    }
+
+    /* Columns: tighter gap, max height */
+    .columns-area {
+      gap: 6px;
+      padding: 4px;
+    }
+
+    .column-wrapper { gap: 3px; max-width: 80px; }
+    .column-scroll  { width: 72px; }
+    .card-item      { width: 72px; }
+
+    .card {
+      width: 72px;
+      height: 96px;
+      border-radius: 6px;
+    }
+    .card-value { font-size: 1.2rem; }
+    .card-suit  { font-size: 0.95rem; }
+    .card-corner { font-size: 0.6rem; top: 4px; left: 5px; }
+
+    .card-peek  { width: 72px; height: 18px; font-size: 0.58rem; padding-left: 5px; }
+    .col-indicator { width: 72px; height: 4px; }
+
+    /* Feedback: one line, smaller */
+    .feedback { height: 22px; font-size: 0.78rem; }
+
+    /* Counters: smaller */
+    .counters { gap: 6px; }
+    .counter-box { padding: 4px 8px; min-width: 56px; }
+    .counter-val { font-size: 1.1rem; }
+    .counter-lbl { font-size: 0.45rem; margin-top: 2px; }
+
+    /* Action buttons: side-by-side, compact */
+    .game-buttons { gap: 6px; }
+
+    .btn-action {
+      padding: 8px 14px;
+      min-width: 110px;
+      gap: 3px;
+    }
+    .btn-action-label { font-size: 0.95rem; }
+    .btn-action-prob  { font-size: 0.6rem; }
+
+    .btn-new, .btn-next {
+      font-size: 0.75rem;
+      padding: 8px 12px;
+    }
+
+    /* Right panel drawer content */
+    .panel-right .section-title { font-size: 0.55rem; }
+    .history-grid { grid-template-columns: repeat(3,1fr); gap: 3px; }
+    .history-card { font-size: 0.58rem; padding: 3px; }
+    .players-table { font-size: 0.6rem; }
+  }
+
+  /* Portrait / large screens: original layout */
+  @media (min-height: 521px), (orientation: portrait) {
+    .drawer-toggle { display: none !important; }
   }
 </style>
 </head>
@@ -749,6 +926,7 @@
   <header>
     <h1>🃏 La Bulle des OliGoFriends</h1>
     <p>Jeu de cartes à boire • Plus Haut / Plus Bas</p>
+    <button class="drawer-toggle" id="drawerToggle" onclick="toggleDrawer()" title="Stats / Historique" style="display:none;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:4px 8px;border-radius:4px;font-size:0.7rem;cursor:pointer;margin-right:8px;">📊</button>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Mode clair/sombre">
       <div class="theme-toggle-knob" id="themeKnob">🌙</div>
     </button>
@@ -764,7 +942,7 @@
           <button class="btn-small" onclick="addPlayer(this)">+</button>
         </div>
       </div>
-      <button class="btn-small" style="width:100%; margin-top:6px" onclick="addPlayerRow()">+ Ajouter joueur</button>
+      <button class="btn-small btn-add-player" style="width:100%; margin-top:6px" onclick="addPlayerRow()">+ Ajouter joueur</button>
     </div>
 
     <div>
@@ -776,12 +954,14 @@
 
     <div class="avatar-area">
       <span class="avatar-emoji" id="avatarEmoji">🙂</span>
-      <div class="avatar-name" id="avatarName">—</div>
-      <div class="avatar-state" id="avatarState">sobre</div>
-      <div class="sip-bar"><div class="sip-bar-fill" id="sipBarFill" style="width:0%"></div></div>
+      <div class="avatar-info">
+        <div class="avatar-name" id="avatarName">—</div>
+        <div class="avatar-state" id="avatarState">sobre</div>
+        <div class="sip-bar"><div class="sip-bar-fill" id="sipBarFill" style="width:0%"></div></div>
+      </div>
     </div>
 
-    <div>
+    <div class="stats-block">
       <div class="section-title">Stats perso</div>
       <div class="stat-row"><span>Parties jouées</span><span id="statGames">0</span></div>
       <div class="stat-row"><span>Gorgées totales</span><span id="statSips">0</span></div>
@@ -1283,6 +1463,22 @@ function toggleTheme() {
   document.body.classList.toggle('light', isLight);
   const knob = document.getElementById('themeKnob');
   knob.textContent = isLight ? '☀️' : '🌙';
+}
+
+// ========== DRAWER TOGGLE (mobile) ==========
+let drawerOpen = false;
+function toggleDrawer() {
+  drawerOpen = !drawerOpen;
+  const right = document.querySelector('.panel-right');
+  const app   = document.querySelector('.app');
+  right.classList.toggle('open', drawerOpen);
+  // Expand grid column when drawer opens
+  if (drawerOpen) {
+    app.style.gridTemplateColumns = '180px 1fr 220px';
+  } else {
+    app.style.gridTemplateColumns = '180px 1fr 0px';
+  }
+  document.getElementById('drawerToggle').textContent = drawerOpen ? '✕' : '📊';
 }
 
 // ========== TIMER ==========
